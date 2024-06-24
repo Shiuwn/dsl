@@ -8,14 +8,14 @@ export default (template: () => Template) => {
     .bind('_name')
     .width(100)
     .column('description')
-    .build()
+    .end()
     .search()
     .input('name')
     .bind('_name')
     .input('description')
     .bind('des')
     .select('os')
-    .build()
+    .end()
 
 
 

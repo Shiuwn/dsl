@@ -1,0 +1,11 @@
+import { Inject, Provide } from '@midwayjs/decorator';
+import { BaseService } from '@cool-midway/core';
+import { InjectEntityModel } from '@midwayjs/typeorm';
+import { BaseSysParamEntity } from '../../entity/sys/param';
+
+@Provide()
+export class BaseSysParamService extends BaseService {
+@InjectEntityModel(BaseSysParamEntity)
+  baseSysParamEntity
+
+}
