@@ -1,5 +1,5 @@
 /**
- * @typedef {import('./index.mjs').Template} Template
+ * @typedef {import('../index.mjs').Template} Template
  */
 /**
  * @param {(string) => Template} template
