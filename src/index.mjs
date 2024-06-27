@@ -182,30 +182,32 @@ class Controller extends Context {
     this.data.push({ type: 'controller', method: 'get', name })
     return this
   }
-  shortcuts(names) {
+  provide_shortcuts(names) {
     const api = names.split(',')
     let provided = Controller.hasProvider(this)
     if (!provided) {
       provided = { type: 'controller', method: '', provided: true, name: '' }
     }
-    provided.api = api
+    provided.api = JSON.stringify(api)
     this.data.push(provided)
     return this
   }
-  entity(name) {
+  provide_entity(name) {
     let provided = Controller.hasProvider(this)
     if (!provided) {
       provided = { type: 'controller', method: '', provided: true, name: '' }
     }
     provided.entity = name
+    this.data.push(provided)
     return this
   }
-  service(name) {
+  provide_service(name) {
     let provided = Controller.hasProvider(this)
     if (!provided) {
       provided = { type: 'controller', method: '', provided: true, name: '' }
     }
     provided.service = name
+    this.data.push(provided)
     return this
   }
 }
@@ -216,7 +218,7 @@ class Service extends Context {
     this.data.push({ type: 'service', inject: name })
     return this
   }
-  entity(name) {
+  inject_entity(name) {
     this.data.push({ type: 'service', entity: name })
     return this
   }
@@ -225,8 +227,16 @@ class Service extends Context {
 
 class Entity extends Context {
   data = []
-  column(name, tsType) {
-    this.data.push({ type: 'entity', name, tsType })
+  column(name) {
+    this.data.push({ type: 'entity', name })
+    return this
+  }
+  type(name) {
+    const last = this.data.pop()
+    if (last) {
+      last.tsType = name
+      this.data.push(last)
+    }
     return this
   }
   comment(name) {

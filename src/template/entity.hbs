@@ -1,11 +1,11 @@
 import { BaseEntity } from '@cool-midway/core';
 import { Column, Entity } from 'typeorm';
 
-/**
- * 菜单
- */
-@Entity('base_sys_menu')
-export class BaseSysMenuEntity extends BaseEntity {
-
-
+@Entity("{{snackCase namespace}}")
+export class {{camelCase namespace}}Entity extends BaseEntity {
+  {{#each entity}}
+  @Column({{#if comment}}{ comment: '{{comment}}' }{{/if}})
+  {{!-- badcase: number; --}}
+  {{name}}{{#if tsType}}:{{tsType}}{{/if}}
+  {{/each}}
 }

@@ -16,6 +16,15 @@ const frontendKeys = [...frontendSearchKeys, 'column']
 
 const templatePath = path.join(__dirname, config.templatePath)
 
+Handlebars.registerHelper('camelCase', function (aString) {
+  return changeCase.camelCase(aString)
+})
+Handlebars.registerHelper('pascalCase', function (aString) {
+  return changeCase.pascalCase(aString)
+})
+Handlebars.registerHelper('snackCase', function (aString) {
+  return changeCase.snakeCase(aString)
+})
 
 const main = () => {
   const options = {
@@ -45,16 +54,48 @@ const main = () => {
     })
     const allPath = namespace.split('/')
     const dirs = allPath.slice(0, -1).join('/')
-
+    shapedData.namespace = namespace
 
     if (shapedData['search'] || frontendKeys.some(k => shapedData[k])) {
-      const frontendPath = path.join(config.frontendPath, 'modules', dirs, 'views', allPath.at(-1))
-      if (!fs.existsSync(frontendPath)) {
-        fs.mkdirSync(frontendPath, { recursive: true })
+      const filepath = path.join(config.frontendPath, 'modules', allPath[0], 'views', allPath.slice(1).join('/'))
+      if (!fs.existsSync(filepath)) {
+        fs.mkdirSync(filepath, { recursive: true })
       }
       const result = Handlebars.compile(fs.readFileSync(path.join(templatePath, 'vue.hbs'), { encoding: 'utf8' }))(shapedData)
-      console.log(shapedData)
-      fs.writeFileSync(path.join(frontendPath, 'index.vue'), result)
+      fs.writeFileSync(path.join(filepath, 'index.vue'), result)
+    }
+
+    if (shapedData['controller']) {
+      const filepath = path.join(config.backendPath, allPath[0], 'controller', allPath.slice(1, -1).join('/'))
+      const index = shapedData['controller'].findIndex(d => d.provided)
+      if (index > -1) {
+        const provided = shapedData['controller'][index]
+        shapedData['controllerProvided'] = provided
+        shapedData['controller'].splice(index, 1)
+      }
+      if (!fs.existsSync(filepath)) {
+        fs.mkdirSync(filepath, { recursive: true })
+      }
+      const result = Handlebars.compile(fs.readFileSync(path.join(templatePath, 'controller.hbs'), { encoding: 'utf8' }))(shapedData)
+      fs.writeFileSync(path.join(filepath, allPath.at(-1) + '.ts'), result)
+    }
+
+    if (shapedData['service']) {
+      const filepath = path.join(config.backendPath, allPath[0], 'service', allPath.slice(1, -1).join('/'))
+      if (!fs.existsSync(filepath)) {
+        fs.mkdirSync(filepath, { recursive: true })
+      }
+      const result = Handlebars.compile(fs.readFileSync(path.join(templatePath, 'service.hbs'), { encoding: 'utf8' }))(shapedData)
+      fs.writeFileSync(path.join(filepath, allPath.at(-1) + '.ts'), result)
+    }
+
+    if (shapedData['entity']) {
+      const filepath = path.join(config.backendPath, allPath[0], 'entity', allPath.slice(1, -1).join('/'))
+      if (!fs.existsSync(filepath)) {
+        fs.mkdirSync(filepath, { recursive: true })
+      }
+      const result = Handlebars.compile(fs.readFileSync(path.join(templatePath, 'entity.hbs'), { encoding: 'utf8' }))(shapedData)
+      fs.writeFileSync(path.join(filepath, allPath.at(-1) + '.ts'), result)
     }
   })
 }

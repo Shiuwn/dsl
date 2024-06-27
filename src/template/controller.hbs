@@ -1,41 +1,34 @@
 import { Body, Query, Inject, Get, Post, Provide } from '@midwayjs/decorator';
 import { CoolController, BaseController } from '@cool-midway/core';
-import { BaseSysMenuEntity } from '../../../entity/sys/menu';
-import { BaseSysMenuService } from '../../../service/sys/menu';
 
 @Provide()
 @CoolController({
-api: ['add', 'delete', 'update', 'info', 'list', 'page'],
-  entity: BaseSysMenuEntity,
-  service: BaseSysMenuService,
+  {{#if controllerProvided}}
+  {{#with controllerProvided}}
+  {{#if api}}api: {{api}},{{/if}}
+  {{#if entity}}entity: {{entity}},{{/if}}
+  {{#if service}}service: {{service}},{{/if}}
+  {{/with}}
+  {{/if}}
 })
-export class BaseSysMenuController extends BaseController {
+export class {{pascalCase namespace}}Controller extends BaseController {
+  {{#if controllerProvided}}
+  {{#with controllerProvided}}
+  {{#if service}}
   @Inject()
-  baseSysMenuService: BaseSysMenuService;
+  {{camelCase service}}: {{service}};
+  {{/if}}
+  {{/with}}
+  {{/if}}
 
-  @Post('/parse')
-  async parse(
-    @Body('entity') entity: string,
-    @Body('controller') controller: string,
-    @Body('module') module: string
+  {{#each controller}}
+  @{{pascalCase method}}("/{{name}}")
+  async {{name}}(
+    {{#each query}}@Query("{{this}}") {{this}},{{/each}}
+    {{#each body}}@Body("{{this}}") {{this}},{{/each}}
   ) {
 
   }
+  {{/each}}
 
-  @Post('/create')
-  async create(@Body() body) {
-    await this.baseSysMenuService.create(body);
-    return this.ok();
-  }
-
-  @Post('/export')
-  async export(@Body('ids') ids: number[]) {
-    return this.ok(await this.baseSysMenuService.export(ids));
-  }
-
-  @Post('/import')
-  async import(@Body('menus') menus: any[]) {
-  await this.baseSysMenuService.import(menus);
-    return this.ok();
-  }
 }
