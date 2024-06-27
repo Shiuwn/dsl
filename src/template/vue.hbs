@@ -1,8 +1,66 @@
-<script>
+<script setup lang="ts">
+import { useCrud, useTable } from "@cool-vue/crud";
+import { useCool } from "/@/cool";
+
+const { service } = useCool();
+
+{{#if search}}
+
+const Search = useSearch({
+  items: [
+  {{#each search}}
+    {
+      label: "{{label}}",
+      prop: "{{bind}}",
+      component: {
+        name: "el-{{type}}",
+        props: {
+
+        },
+        {{#if options}}
+        options: {{{options}}}
+        {{/if}}
+      }
+    },
+  {{/each}}
+  ],
+
+})
+{{/if}}
+
+{{#if column}}
+const Table = useTable({
+  columns: [
+    {{#each column}}
+    {
+      prop: "{{bind}}",
+      label: "{{label}}",
+      {{#if width}}width: {{width}},{{/if}}
+      align: 'center'
+    },
+    {{/each}}
+  ]
+})
+{{/if}}
 
 </script>
 <template>
+  <cl-crud ref="Crud">
 
+    {{#if search}}
+    <cl-row>
+      <cl-search ref="Search"></cl-search>
+    </cl-row>
+    {{/if}}
+    {{#if column}}
+    <cl-row>
+      <cl-table ref="Table"></cl-table>
+    </cl-row>
+    {{/if}}
+    <cl-row>
+      <cl-pagination ref="Pagination"></cl-pagination>
+    </cl-row>
+  </cl-crud>
 </template>
 <style scoped>
 

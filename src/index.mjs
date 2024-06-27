@@ -1,20 +1,20 @@
 class Context {
-  parent: Context | null;
-  data: any[] = []
-  constructor(parent: Context | null) {
+  parent = null;
+  data = []
+  constructor(parent) {
     this.parent = parent
   }
-  collect(data: UIData) {
+  collect(data) {
     return this
   }
   end() {
     this.data.forEach((d) => {
       this.parent?.collect(d)
     })
-    return this.parent as Template
+    return this.parent
   }
 }
-
+/*
 type UIType = 'input' | 'select' | 'column'
 interface UIData {
   type: UIType
@@ -45,12 +45,13 @@ interface EntityData {
   [key: string]: any
 }
 
+*/
 export class Template extends Context {
-  data: any[] = []
-  namespace: string
-  constructor(namespace?: string) {
+  data = []
+  namespace
+  constructor(namespace) {
     super(null)
-    this.namespace = (namespace || '').split('/').join('_')
+    this.namespace = namespace || ''
   }
   search() {
     return new Search(this)
@@ -61,12 +62,15 @@ export class Template extends Context {
   controller() {
     return new Controller(this)
   }
-  collect(data: any) {
+  collect(data) {
     this.data.push(data)
     return this
   }
   build() {
-
+    return { namespace: this.namespace, data: this.data }
+  }
+  end() {
+    return this
   }
 
   service() {
@@ -80,15 +84,17 @@ export class Template extends Context {
 }
 
 class Search extends Context {
-  data: UIData[] = []
-  input(name: string) {
+  data = []
+  input(name) {
     this.data.push({ type: 'input', label: name, bind: name })
     return this
   }
-  select(name: string) {
-    return this.input(name)
+  select(name) {
+    this.data.push({ type: 'select', label: name, bind: name })
+    return this
+
   }
-  bind(value: string) {
+  bind(value) {
     const last = this.data.pop()
     if (last) {
       last.bind = value
@@ -96,28 +102,30 @@ class Search extends Context {
     }
     return this
   }
-  options(data: SelectOption[]) {
+  options(data) {
     const last = this.data.pop()
     if (last?.type === 'select') {
-      last.options = data
+      last.options = JSON.stringify(data, null, 2)
       this.data.push(last)
     }
     return this
   }
 }
 
+/*
 interface SelectOption {
-  label: string;
-  value: string | number;
+  label;
+  value;
 }
+  */
 
 class Table extends Context {
-  data: UIData[] = []
-  column(name: string) {
+  data = []
+  column(name) {
     this.data.push({ type: 'column', label: name, bind: name })
     return this
   }
-  width(width: string | number) {
+  width(width) {
     const last = this.data.pop()
     if (last) {
       last.width = width
@@ -125,7 +133,7 @@ class Table extends Context {
     }
     return this
   }
-  bind(value: string) {
+  bind(value) {
     const last = this.data.pop()
     if (last) {
       last.bind = value
@@ -136,15 +144,15 @@ class Table extends Context {
 }
 
 class Controller extends Context {
-  data: ControllerData[] = []
-  static hasProvider(ctx: Controller) {
+  data = []
+  static hasProvider(ctx) {
     return ctx.data.find(c => c.provide)
   }
-  post(name: string) {
+  post(name) {
     this.data.push({ type: 'controller', method: 'post', name })
     return this
   }
-  body(name: string) {
+  body(name) {
     const last = this.data.pop()
     if (last && last.type === 'controller' && last.method === 'post') {
       if (!last.body) {
@@ -156,13 +164,13 @@ class Controller extends Context {
 
     return this
   }
-  query(name: string) {
+  query(name) {
     const last = this.data.pop()
     if (last && last.type === 'controller' && last.method === 'get') {
       if (!last.query) {
         last.query = []
       }
-      last.body.push(name)
+      last.query.push(name)
       this.data.push(last)
     }
 
@@ -170,11 +178,11 @@ class Controller extends Context {
 
   }
 
-  get(name: string) {
+  get(name) {
     this.data.push({ type: 'controller', method: 'get', name })
     return this
   }
-  shortcuts(names: string) {
+  shortcuts(names) {
     const api = names.split(',')
     let provided = Controller.hasProvider(this)
     if (!provided) {
@@ -184,7 +192,7 @@ class Controller extends Context {
     this.data.push(provided)
     return this
   }
-  entity(name: string) {
+  entity(name) {
     let provided = Controller.hasProvider(this)
     if (!provided) {
       provided = { type: 'controller', method: '', provided: true, name: '' }
@@ -192,7 +200,7 @@ class Controller extends Context {
     provided.entity = name
     return this
   }
-  service(name: string) {
+  service(name) {
     let provided = Controller.hasProvider(this)
     if (!provided) {
       provided = { type: 'controller', method: '', provided: true, name: '' }
@@ -203,12 +211,12 @@ class Controller extends Context {
 }
 
 class Service extends Context {
-  data: ServiceData[] = []
-  inject(name: string) {
+  data = []
+  inject(name) {
     this.data.push({ type: 'service', inject: name })
     return this
   }
-  entity(name: string) {
+  entity(name) {
     this.data.push({ type: 'service', entity: name })
     return this
   }
@@ -216,12 +224,12 @@ class Service extends Context {
 }
 
 class Entity extends Context {
-  data: EntityData[] = []
-  column(name: string, tsType?: string) {
+  data = []
+  column(name, tsType) {
     this.data.push({ type: 'entity', name, tsType })
     return this
   }
-  comment(name: string) {
+  comment(name) {
     const last = this.data.pop()
     if (last) {
       last.comment = name
